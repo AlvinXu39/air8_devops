@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A8-13 · Stage overdue insights · Test simulation</title>
+    <style>
+      :root { color-scheme: dark; --bg:#0a1020; --panel:#111b31; --panel2:#17243e; --line:#2d4166; --text:#e9f0ff; --muted:#9db0d0; --cyan:#62d8ff; --amber:#ffbf69; --red:#ff7183; --green:#73e0aa; }
+      * { box-sizing:border-box; }
+      body { margin:0; min-height:100vh; font:14px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; color:var(--text); background:radial-gradient(circle at 15% 0%,#20355c 0,#0a1020 48%); }
+      main { max-width:1120px; margin:0 auto; padding:32px 20px 64px; }
+      .eyebrow { color:var(--cyan); text-transform:uppercase; letter-spacing:.16em; font-size:11px; font-weight:800; }
+      h1,h2,h3,p { margin-top:0; } h1 { max-width:760px; margin-bottom:10px; font-size:clamp(28px,5vw,52px); line-height:1.02; } h2 { font-size:20px; } h3 { margin-bottom:4px; font-size:15px; }
+      .lede { max-width:760px; color:var(--muted); font-size:16px; }
+      .notice { border:1px solid #826a3b; background:#251f18; color:#ffd995; border-radius:12px; padding:10px 14px; margin:20px 0; }
+      .layout { display:grid; grid-template-columns:1.25fr .75fr; gap:16px; margin-top:26px; } .card { border:1px solid var(--line); background:rgba(17,27,49,.9); border-radius:18px; padding:18px; box-shadow:0 12px 36px #0003; }
+      .stage-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin:16px 0; } .stage { border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--panel2); } .stage.selected { border-color:var(--cyan); box-shadow:0 0 0 2px #62d8ff33; } .stage small { display:block; color:var(--muted); margin-top:12px; } .stage .risk { color:var(--amber); }
+      button { border:1px solid var(--line); border-radius:9px; color:var(--text); background:#1a2b49; padding:9px 12px; cursor:pointer; font:inherit; } button:hover,button.active { border-color:var(--cyan); color:var(--cyan); } .scenarios { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+      .drawer { border:1px solid #3c5884; background:#0d172b; border-radius:14px; padding:16px; } .drawer-head { display:flex; align-items:start; justify-content:space-between; gap:10px; } .badge { color:#15100b; background:var(--amber); border-radius:99px; padding:4px 9px; font-size:11px; font-weight:800; white-space:nowrap; } .badge.empty { color:var(--muted); background:#273957; }
+      .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:16px 0; } .metric { background:var(--panel2); border-radius:10px; padding:10px; } .metric b { display:block; font-size:20px; } .metric span { color:var(--muted); font-size:11px; }
+      .event { border-left:3px solid var(--red); background:#1b2238; border-radius:8px; padding:10px 12px; margin:8px 0; } .event small,.muted { color:var(--muted); } .facts { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; } .fact { border:1px solid #45628f; border-radius:6px; padding:3px 7px; color:#c6d7f5; font-size:12px; }
+      .empty { color:var(--muted); border:1px dashed #45628f; padding:18px; border-radius:9px; } .rules { margin:0; padding-left:20px; color:var(--muted); } .rules li { margin:7px 0; } code { color:#b9e9ff; }
+      .flow { margin-top:16px; } .flow li { margin:8px 0; } .flow strong { color:var(--text); } .source { margin-top:20px; color:var(--muted); font-size:12px; }
+      @media (max-width:760px) { .layout { grid-template-columns:1fr; } .stage-grid { grid-template-columns:repeat(2,1fr); } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">A8-13 · test simulation · prototype review</div>
+      <h1>More insights to prevent overdue</h1>
+      <p class="lede">A separate, fact-only overdue area inside the existing WIP stage insights panel. Existing production guidance and buyer-manual content remain unchanged.</p>
+      <div class="notice">Simulation artifact. This page is for workflow testing and contains no production data or implementation code.</div>
+
+      <section class="card" aria-labelledby="board-title">
+        <h2 id="board-title">Supplier WIP · Northstar Denim</h2>
+        <p class="muted">Report date: 2026-09-04 · click a stage's insight action</p>
+        <div class="stage-grid">
+          <button class="stage" data-stage="Cutting"><b>Cutting</b><small>On track</small></button>
+          <button class="stage selected" data-stage="Sewing"><b>Sewing</b><small class="risk">2 overdue events</small></button>
+          <button class="stage" data-stage="Wet Processing"><b>Wet Processing</b><small>Insights available</small></button>
+          <button class="stage" data-stage="Packing"><b>Packing</b><small>On track</small></button>
+        </div>
+        <div class="scenarios" aria-label="Prototype scenarios">
+          <button class="scenario active" data-scenario="current">Current-stage overdue</button>
+          <button class="scenario" data-scenario="historical">Historical overdue</button>
+          <button class="scenario" data-scenario="multi">Multiple stages</button>
+          <button class="scenario" data-scenario="crd">CRD-only overdue</button>
+          <button class="scenario" data-scenario="empty">No calculable overdue</button>
+        </div>
+      </section>
+
+      <div class="layout">
+        <section class="card" aria-labelledby="drawer-title">
+          <div class="drawer">
+            <div class="drawer-head"><div><div class="eyebrow">Existing stage insights · <span id="stage-label">Sewing</span></div><h2 id="drawer-title">Overdue insights</h2></div><span id="status" class="badge">At risk</span></div>
+            <p id="summary" class="muted">2 stage events are late. These are date facts, not root-cause analysis.</p>
+            <div class="metrics"><div class="metric"><b id="average">3d</b><span>Average days overdue</span></div><div class="metric"><b id="count">2</b><span>Overdue events</span></div><div class="metric"><b id="stage-count">1</b><span>Overdue stages</span></div></div>
+            <div id="events"></div>
+            <div id="empty" class="empty" hidden>No calculable stage-overdue insight exists. Keep the other stage-insights sections visible; do not show an “unable to determine” placeholder.</div>
+          </div>
+          <p class="source">Customer-facing fields: PO, stage, relevant date, and days late. Root-cause text, style values, and CRD-only lateness are excluded.</p>
+        </section>
+        <section class="card" id="user-flow" aria-labelledby="flow-title">
+          <div class="eyebrow">User flow</div><h2 id="flow-title">Review the behavior</h2>
+          <ol class="flow"><li><strong>Entry:</strong> Supplier Manager opens a selected buyer's WIP planner.</li><li><strong>Action:</strong> Click the insight action on a production-stage card.</li><li><strong>Response:</strong> Keep existing guidance/manual content and add an independent overdue area.</li><li><strong>Decision:</strong> Show current or historical stage events only when a stage date rule produces an overdue event.</li><li><strong>Success:</strong> Review PO, stage, date, and days late; multiple stage events remain separate.</li><li><strong>Empty:</strong> Omit the overdue area when no event is calculable.</li><li><strong>Recovery:</strong> Switch scenario or stage without changing WIP source data.</li></ol>
+          <h3>Rules represented</h3><ul class="rules"><li>Completion date vs plan when completed; otherwise report date vs plan.</li><li>Missing plan date is not evaluated.</li><li>CRD-only lateness is not a stage-overdue event.</li><li>Historical overdue stays with its original stage.</li></ul>
+        </section>
+      </div>
+    </main>
+    <script>
+      const scenarios = {
+        current:{status:'At risk',summary:'2 stage events are late. These are date facts, not root-cause analysis.',average:'3d',count:2,stages:1,events:[['PO-10023','Current stage · Sewing','Plan 2026-09-01 · report 2026-09-04','+3 days late'],['PO-10031','Current stage · Sewing','Plan 2026-09-02 · report 2026-09-04','+2 days late']]},
+        historical:{status:'Watch',summary:'1 completed stage was late and is retained in its historical stage.',average:'3d',count:1,stages:1,events:[['PO-10023','Historical · Sewing','Plan 2026-08-20 · actual 2026-08-23','+3 days late']]},
+        multi:{status:'At risk',summary:'One PO has separate overdue events across two stages.',average:'4d',count:2,stages:2,events:[['PO-10023','Historical · Sewing','Plan 2026-08-20 · actual 2026-08-23','+3 days late'],['PO-10023','Current · Wet Processing','Plan 2026-09-01 · report 2026-09-06','+5 days late']]},
+        crd:{status:'On track',summary:'Overall delivery is late, but no stage-overdue event is calculable.',average:'—',count:0,stages:0,events:[]},
+        empty:{status:'No alert',summary:'No calculable stage-overdue insight exists.',average:'—',count:0,stages:0,events:[]}
+      };
+      const $ = (id) => document.getElementById(id);
+      function render(key){ const d=scenarios[key]; $('status').textContent=d.status; $('status').className='badge'+(d.events.length?'':' empty'); $('summary').textContent=d.summary; $('average').textContent=d.average; $('count').textContent=d.count; $('stage-count').textContent=d.stages; $('events').innerHTML=d.events.map(e=>`<article class="event"><b>${e[1]}</b><small>${e[0]}</small><div class="facts"><span class="fact">${e[2]}</span><span class="fact">${e[3]}</span></div></article>`).join(''); $('empty').hidden=Boolean(d.events.length); document.querySelectorAll('.scenario').forEach(b=>b.classList.toggle('active',b.dataset.scenario===key)); }
+      document.querySelectorAll('.scenario').forEach(b=>b.addEventListener('click',()=>render(b.dataset.scenario)));
+      document.querySelectorAll('.stage').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.stage').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); $('stage-label').textContent=b.dataset.stage; }));
+      render('current');
+    </script>
+  </body>
+</html>
+
