@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="prototype-source" content="A8-19 Round 2 Q&A revision; Linear comment a88d763b-b08d-4424-896a-719c488e44ec">
+  <meta name="prototype-source-revision" content="A8-19 updated 2026-09-04T06:16:38.750Z; A8-21 updated 2026-09-04T06:09:43.084Z">
+  <title>A8-19 · Overdue insights prototype</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #667085;
+      --line: #dce3ec;
+      --soft: #f5f8fb;
+      --panel: #ffffff;
+      --navy: #18253d;
+      --blue: #2e6bff;
+      --blue-soft: #edf3ff;
+      --amber: #a25b00;
+      --amber-soft: #fff5dc;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --green: #087443;
+      --green-soft: #eaf8f0;
+      --shadow: 0 18px 50px rgba(23, 32, 51, .12);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: #edf2f7; font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    button { font: inherit; }
+    .shell { max-width: 1260px; margin: 0 auto; padding: 28px 20px 56px; }
+    .topline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+    .eyebrow { color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1, h2, h3, h4, p { margin: 0; }
+    h1 { margin-top: 7px; color: var(--navy); font-size: clamp(28px, 4vw, 44px); letter-spacing: -.045em; }
+    .lede { max-width: 760px; margin-top: 9px; color: #4b5870; font-size: 16px; }
+    .review-chip { border: 1px solid #cbd8f6; border-radius: 999px; padding: 7px 11px; color: #2854bd; background: var(--blue-soft); font-size: 12px; font-weight: 750; }
+    .scenario-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 16px; }
+    .scenario { border: 1px solid #cbd5e1; border-radius: 999px; padding: 8px 12px; color: #445069; background: #fff; cursor: pointer; }
+    .scenario:hover, .scenario.active { border-color: var(--blue); color: #1742a4; background: var(--blue-soft); }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(390px, .9fr); gap: 18px; align-items: start; }
+    .board, .drawer, .trace { border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); }
+    .board { padding: 18px; }
+    .board-head { display: flex; justify-content: space-between; align-items: start; gap: 14px; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
+    .board-head h2 { color: var(--navy); font-size: 17px; }
+    .buyer { color: var(--blue); font-weight: 800; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .status-tag { flex: none; border-radius: 8px; padding: 6px 8px; color: var(--green); background: var(--green-soft); font-size: 11px; font-weight: 800; }
+    .stage-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin-top: 17px; }
+    .stage { min-height: 112px; border: 1px solid var(--line); border-radius: 13px; padding: 12px; background: var(--soft); }
+    .stage.selected { border-color: var(--blue); outline: 2px solid #b9ccff; background: #f4f7ff; }
+    .stage-name { color: #2e3b52; font-size: 12px; font-weight: 800; }
+    .stage-meta { margin-top: 22px; color: var(--muted); font-size: 11px; }
+    .stage-meta.warn { color: var(--red); font-weight: 750; }
+    .stage-meta.watch { color: var(--amber); font-weight: 750; }
+    .open-button { width: 100%; margin-top: 17px; border: 0; border-radius: 10px; padding: 11px 14px; color: #fff; background: var(--navy); font-weight: 800; cursor: pointer; }
+    .open-button:hover { background: #25395d; }
+    .drawer { position: relative; min-height: 610px; padding: 20px; }
+    .drawer-head { padding-right: 28px; }
+    .drawer-head h2 { margin-top: 4px; color: var(--navy); font-size: 24px; letter-spacing: -.03em; }
+    .drawer-head p { margin-top: 5px; }
+    .close { position: absolute; top: 15px; right: 15px; border: 1px solid var(--line); border-radius: 9px; padding: 4px 8px; color: var(--muted); background: #fff; cursor: pointer; }
+    .drawer.closed > *:not(.close) { visibility: hidden; }
+    .section { margin-top: 19px; border-top: 1px solid var(--line); padding-top: 17px; }
+    .overdue-section { border: 1px solid #ffd891; border-radius: 14px; padding: 15px; background: linear-gradient(145deg, #fffaf0, #fff); }
+    .section-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+    .kicker { color: var(--amber); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .section h3 { margin-top: 3px; color: var(--navy); font-size: 17px; }
+    .risk { flex: none; border-radius: 999px; padding: 5px 9px; color: #7a271a; background: #ffd7d1; font-size: 11px; font-weight: 900; }
+    .risk.watch { color: #7a4b00; background: #ffe8aa; }
+    .risk.none { color: #47606d; background: #e9f0f3; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+    .metric { border: 1px solid #eadfca; border-radius: 10px; padding: 10px; background: rgba(255,255,255,.74); }
+    .metric strong { display: block; color: var(--navy); font-size: 20px; }
+    .metric span { color: var(--muted); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; }
+    .fact-list { display: grid; gap: 9px; margin-top: 13px; }
+    .fact-card { border-left: 3px solid var(--red); border-radius: 0 10px 10px 0; padding: 10px 12px; background: var(--red-soft); }
+    .fact-card.historical { border-left-color: var(--amber); background: var(--amber-soft); }
+    .fact-card strong { display: block; color: #3b1f1b; }
+    .fact-line { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .fact { border: 1px solid #d6dee8; border-radius: 7px; padding: 3px 7px; color: #445069; background: #fff; font-size: 11px; }
+    .fact.late { border-color: #f1b3ab; color: var(--red); font-weight: 800; }
+    .fact.group { border-color: #c9d9ff; color: #2854bd; background: #f5f8ff; }
+    .hidden { display: none !important; }
+    .empty-state { border: 1px dashed #b8c5d1; border-radius: 12px; padding: 17px; color: #526275; background: #f7fafc; }
+    .empty-state strong { display: block; color: var(--navy); }
+    .error-state { border: 1px solid #f3b9b2; border-radius: 12px; padding: 14px; color: #7a271a; background: #fff5f3; }
+    .retry { margin-top: 9px; border: 1px solid #d98d84; border-radius: 8px; padding: 7px 10px; color: #7a271a; background: #fff; cursor: pointer; }
+    .unchanged { border: 1px solid var(--line); border-radius: 12px; padding: 13px; background: #fbfcfe; }
+    .unchanged + .unchanged { margin-top: 9px; }
+    .unchanged h4 { color: #31405a; font-size: 13px; }
+    .unchanged p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .trace { margin-top: 18px; padding: 18px; }
+    .trace h2 { color: var(--navy); font-size: 17px; }
+    .trace-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 13px; }
+    .trace-card { border: 1px solid var(--line); border-radius: 11px; padding: 11px; background: #fbfcfe; }
+    .trace-card h3 { color: #31405a; font-size: 12px; }
+    .trace-card p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .trace-card code { color: #2854bd; font-size: 11px; }
+    .review-note { margin-top: 14px; border-radius: 10px; padding: 11px 12px; color: #5c4600; background: #fff7d9; font-size: 12px; }
+    .review-note strong { color: #7a4b00; }
+    .flow-anchor { margin-top: 18px; padding-top: 2px; }
+    @media (max-width: 920px) { .workspace { grid-template-columns: 1fr; } .drawer { min-height: 0; } }
+    @media (max-width: 650px) { .stage-grid { grid-template-columns: repeat(2, 1fr); } .summary, .trace-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topline">
+      <div>
+        <div class="eyebrow">A8-19 · Prototype review</div>
+        <h1>More insights to prevent overdue</h1>
+        <p class="lede">A separate overdue-insights area inside the existing WIP stage insights pop-up. It shows date facts and lateness without mixing in production guidance, buyer-manual Q&amp;A, or delay reasons.</p>
+      </div>
+      <div class="review-chip">Supplier Manager · selected buyer</div>
+    </header>
+
+    <nav class="scenario-bar" aria-label="Prototype review scenarios">
+      <button class="scenario active" data-scenario="current">Current overdue</button>
+      <button class="scenario" data-scenario="historical">Historical overdue</button>
+      <button class="scenario" data-scenario="multi">Multiple stages · dedup</button>
+      <button class="scenario" data-scenario="crd">CRD-only</button>
+      <button class="scenario" data-scenario="missing-plan">Missing plan</button>
+      <button class="scenario" data-scenario="empty">Empty</button>
+      <button class="scenario" data-scenario="fallback">Report-date fallback</button>
+      <button class="scenario" data-scenario="error">Source unavailable</button>
+    </nav>
+
+    <div class="workspace">
+      <section class="board" aria-label="Selected buyer WIP production planner">
+        <div class="board-head">
+          <div>
+            <h2>WIP Production Planner · <span class="buyer">Northstar Denim</span></h2>
+            <p class="muted small" id="boardMeta">Active snapshot · report date 03 Jun 2026 · synthetic review data</p>
+          </div>
+          <span class="status-tag">Active buyer view</span>
+        </div>
+        <div class="stage-grid" id="stageGrid"></div>
+        <button class="open-button" type="button" id="openPopup">Open selected stage insights</button>
+      </section>
+
+      <aside class="drawer" id="drawer" aria-label="Existing stage insights pop-up">
+        <button class="close" type="button" id="closePopup" aria-label="Close insights">×</button>
+        <div class="drawer-head">
+          <div class="eyebrow">Existing stage insights pop-up</div>
+          <h2 id="drawerTitle">Wet Processing insights</h2>
+          <p class="muted">Existing progress descriptions and buyer-manual Q&amp;A stay in their own sections.</p>
+        </div>
+
+        <section class="section overdue-section" id="overdueArea" aria-live="polite">
+          <div class="section-head">
+            <div><div class="kicker">New · separate area</div><h3>Overdue insights</h3></div>
+            <span class="risk" id="riskPill">At risk</span>
+          </div>
+          <p class="muted small" id="riskSummary">2 calculable stage events require attention.</p>
+          <div class="summary">
+            <div class="metric"><strong id="averageLate">3.5d</strong><span>Average days overdue</span></div>
+            <div class="metric"><strong id="itemCount">2</strong><span>Deduplicated events</span></div>
+            <div class="metric"><strong id="stageCount">1</strong><span>Overdue stages</span></div>
+          </div>
+          <div class="fact-list" id="factList"></div>
+        </section>
+
+        <section class="section hidden" id="emptyArea">
+          <div class="empty-state"><strong>Overdue insights area is omitted.</strong><span>No calculable stage-overdue event is available for this selected stage. No missing-plan or “unable to determine” placeholder is shown.</span></div>
+        </section>
+
+        <section class="section hidden" id="errorArea">
+          <div class="error-state"><strong>Stage data is unavailable.</strong><div>The pop-up preserves its existing content while the selected snapshot can be retried.</div><button class="retry" type="button" id="retryButton">Retry selected snapshot</button></div>
+        </section>
+
+        <section class="section unchanged">
+          <h4>Production guidance · unchanged</h4>
+          <p>Existing progress descriptions remain visible and are not merged with overdue facts.</p>
+        </section>
+        <section class="unchanged">
+          <h4>Buyer manual Q&amp;A · unchanged</h4>
+          <p>Buyer-manual cards and Ask Manual actions remain in their existing area.</p>
+        </section>
+      </aside>
+    </div>
+
+    <section class="trace" id="decision-trace">
+      <h2>Review trace · confirmed Round 2 decisions</h2>
+      <div class="trace-grid">
+        <article class="trace-card"><h3>Calculation source</h3><p>On open, evaluate <code>po_rows[] → segs[]</code>; do not use truncated <code>alerts[]</code>.</p></article>
+        <article class="trace-card"><h3>Date rule</h3><p>Actual present: actual − plan. Otherwise: report − plan. No plan: do not evaluate.</p></article>
+        <article class="trace-card"><h3>Event identity</h3><p>Deduplicate by PO + style + stage + plan + actual before display and statistics.</p></article>
+        <article class="trace-card"><h3>Historical ownership</h3><p>A completed late stage belongs only to its historical stage pop-up, not the later current stage.</p></article>
+        <article class="trace-card"><h3>Boundaries</h3><p>CRD-only lateness, missing-plan rows, and empty results do not create an overdue area. Delay reasons are excluded.</p></article>
+        <article class="trace-card"><h3>Style context</h3><p>Review grouping uses Jeans/Pants, Denim Jacket, and Bag/GWP; facts remain PO/stage/date/days late.</p></article>
+      </div>
+      <div class="review-note"><strong>Implementation review note:</strong> current Portal compute still exposes a <code>date_evt</code> fallback when <code>actual_date</code> is absent. This prototype intentionally demonstrates the confirmed report-date fallback rule; production behavior requires later implementation review and is not changed here.</div>
+    </section>
+
+    <div id="user-flow" class="flow-anchor" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const stageNames = {
+      cutting_preparation: 'Cutting & Preparation',
+      sewing: 'Sewing',
+      wet_processing: 'Wet Processing',
+      quality_control: 'Quality Control',
+      packing: 'Packing'
+    };
+
+    const scenarios = {
+      current: {
+        stage: 'wet_processing', report: '2026-06-03', selected: 'Wet Processing', risk: 'At risk', riskClass: '', summary: '2 calculable stage events require attention.', average: '3.5d', count: 2, stages: 1,
+        cards: [
+          { po: 'PO-1042', stage: 'Wet Processing', kind: 'Current-stage overdue', plan: '29 May 2026', relevant: 'Report 03 Jun 2026', days: 5, group: 'Jeans/Pants', dateType: 'plan_report_delay' },
+          { po: 'PO-1088', stage: 'Wet Processing', kind: 'Current-stage overdue', plan: '01 Jun 2026', relevant: 'Report 03 Jun 2026', days: 2, group: 'Bag/GWP', dateType: 'plan_report_delay' }
+        ], note: 'Active snapshot · report date 03 Jun 2026 · synthetic review data'
+      },
+      historical: {
+        stage: 'sewing', report: '2026-06-03', selected: 'Sewing', risk: 'Watch', riskClass: 'watch', summary: 'One completed stage was late when it executed.', average: '3d', count: 1, stages: 1,
+        cards: [{ po: 'PO-1042', stage: 'Sewing', kind: 'Historical overdue', plan: '18 May 2026', relevant: 'Actual 21 May 2026', days: 3, group: 'Jeans/Pants', dateType: 'plan_actual_delay' }],
+        note: 'Merged historical snapshot view · selected historical stage · synthetic review data'
+      },
+      multi: {
+        stage: 'wet_processing', report: '2026-06-03', selected: 'Wet Processing', risk: 'At risk', riskClass: '', summary: 'One PO has separate overdue events across two stages.', average: '4d', count: 2, stages: 2,
+        cards: [
+          { po: 'PO-1042', stage: 'Sewing', kind: 'Historical overdue', plan: '18 May 2026', relevant: 'Actual 21 May 2026', days: 3, group: 'Jeans/Pants', dateType: 'plan_actual_delay' },
+          { po: 'PO-1042', stage: 'Wet Processing', kind: 'Current-stage overdue', plan: '29 May 2026', relevant: 'Report 03 Jun 2026', days: 5, group: 'Jeans/Pants', dateType: 'plan_report_delay' }
+        ], rawDuplicateCount: 3, note: 'Merged active + historical rows · duplicate source rows collapse to one event per key'
+      },
+      crd: {
+        stage: 'sewing', report: '2026-06-03', selected: 'Sewing', risk: 'No stage alert', riskClass: 'none', summary: 'PO-level CRD lateness is separate from stage overdue.', average: '—', count: 0, stages: 0, cards: [], note: 'CRD 01 Jun 2026 < report 03 Jun 2026 · no stage event'
+      },
+      'missing-plan': {
+        stage: 'sewing', report: '2026-06-03', selected: 'Sewing', risk: 'No stage alert', riskClass: 'none', summary: 'The stage has no planned date, so it is not evaluated.', average: '—', count: 0, stages: 0, cards: [], note: 'Stage row contains actual/quantities but plan_date is blank'
+      },
+      empty: {
+        stage: 'wet_processing', report: '2026-06-03', selected: 'Wet Processing', risk: 'No stage alert', riskClass: 'none', summary: 'No calculable stage-overdue event exists.', average: '—', count: 0, stages: 0, cards: [], note: 'Selected buyer snapshot has no qualifying stage event'
+      },
+      fallback: {
+        stage: 'sewing', report: null, selected: 'Sewing', risk: 'Watch', riskClass: 'watch', summary: 'Report date is null; the configured default is used for the comparison.', average: '33d', count: 1, stages: 1,
+        cards: [{ po: 'PO-1099', stage: 'Sewing', kind: 'Current-stage overdue', plan: '01 May 2026', relevant: 'Default report 03 Jun 2026', days: 33, group: 'Denim Jacket', dateType: 'plan_report_delay' }],
+        note: 'snapshot meta.report_date = null → default_report_date = 2026-06-03'
+      },
+      error: {
+        stage: 'wet_processing', report: '2026-06-03', selected: 'Wet Processing', risk: 'Retry', riskClass: 'none', summary: 'The selected WIP snapshot could not be read.', average: '—', count: 0, stages: 0, cards: [], error: true, note: 'Review-only error shell; exact production copy is not decided here'
+      }
+    };
+
+    const stageGrid = document.getElementById('stageGrid');
+    const drawer = document.getElementById('drawer');
+    const overdueArea = document.getElementById('overdueArea');
+    const emptyArea = document.getElementById('emptyArea');
+    const errorArea = document.getElementById('errorArea');
+    const factList = document.getElementById('factList');
+    const $ = (id) => document.getElementById(id);
+    let activeScenario = 'current';
+
+    function renderStageGrid(data) {
+      const stageKeys = ['cutting_preparation', 'sewing', 'wet_processing', 'quality_control', 'packing'];
+      const affected = new Set(data.cards.filter((card) => card.stage === data.selected).map((card) => card.stage));
+      stageGrid.innerHTML = stageKeys.map((key) => {
+        const isSelected = key === data.stage;
+        const isAffected = affected.has(stageNames[key]);
+        const label = isAffected ? `${data.cards.filter((card) => card.stage === stageNames[key]).length} overdue event${data.cards.filter((card) => card.stage === stageNames[key]).length === 1 ? '' : 's'}` : (isSelected ? 'Insights available' : 'On track');
+        return `<article class="stage${isSelected ? ' selected' : ''}"><div class="stage-name">${stageNames[key]}</div><div class="stage-meta${isAffected ? ' warn' : (isSelected ? ' watch' : '')}">${label}</div></article>`;
+      }).join('');
+    }
+
+    function renderCards(data) {
+      factList.innerHTML = data.cards.map((card) => `<article class="fact-card${card.kind.startsWith('Historical') ? ' historical' : ''}">
+        <strong>${card.kind} · ${card.stage}</strong>
+        <div class="fact-line"><span class="fact">${card.po}</span><span class="fact">Plan ${card.plan}</span><span class="fact">${card.relevant}</span><span class="fact late">+${card.days} days late</span><span class="fact group">${card.group}</span></div>
+      </article>`).join('');
+    }
+
+    function render(name) {
+      activeScenario = name;
+      const data = scenarios[name];
+      renderStageGrid(data);
+      $('drawerTitle').textContent = `${data.selected} insights`;
+      $('boardMeta').textContent = data.note;
+      $('riskPill').textContent = data.risk;
+      $('riskPill').className = `risk ${data.riskClass}`;
+      $('riskSummary').textContent = data.summary;
+      $('averageLate').textContent = data.average;
+      $('itemCount').textContent = String(data.count);
+      $('stageCount').textContent = String(data.stages);
+      overdueArea.classList.toggle('hidden', Boolean(data.error) || data.cards.length === 0);
+      emptyArea.classList.toggle('hidden', Boolean(data.error) || data.cards.length > 0);
+      errorArea.classList.toggle('hidden', !data.error);
+      renderCards(data);
+      document.querySelectorAll('.scenario').forEach((button) => button.classList.toggle('active', button.dataset.scenario === name));
+    }
+
+    document.querySelectorAll('.scenario').forEach((button) => button.addEventListener('click', () => render(button.dataset.scenario)));
+    $('openPopup').addEventListener('click', () => drawer.classList.remove('closed'));
+    $('closePopup').addEventListener('click', () => drawer.classList.add('closed'));
+    $('retryButton').addEventListener('click', () => render('current'));
+    render(activeScenario);
+  </script>
+</body>
+</html>
+
