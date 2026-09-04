@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="prototype-source" content="A8-19 Round 2 Q&A revision; Linear comment a88d763b-b08d-4424-896a-719c488e44ec">
+  <meta name="prototype-source" content="A8-19 Round 2 Q&A revision; entry/layout feedback comment 887690b0-64d6-47d1-a636-fdb3f84e6d88">
   <meta name="prototype-source-revision" content="A8-19 updated 2026-09-04T06:16:38.750Z; A8-21 updated 2026-09-04T06:09:43.084Z">
   <title>A8-19 · Overdue insights prototype</title>
   <style>
@@ -53,6 +53,9 @@
     .stage-meta { margin-top: 22px; color: var(--muted); font-size: 11px; }
     .stage-meta.warn { color: var(--red); font-weight: 750; }
     .stage-meta.watch { color: var(--amber); font-weight: 750; }
+    .stage-actions { display: flex; align-items: center; gap: 6px; margin-top: 15px; color: var(--muted); font-size: 10px; }
+    .insight-trigger { width: 25px; height: 25px; border: 0; border-radius: 50%; color: #fff; background: var(--navy); font-weight: 900; cursor: pointer; }
+    .insight-trigger:hover, .insight-trigger:focus-visible { background: var(--blue); outline: 2px solid #b9ccff; outline-offset: 2px; }
     .open-button { width: 100%; margin-top: 17px; border: 0; border-radius: 10px; padding: 11px 14px; color: #fff; background: var(--navy); font-weight: 800; cursor: pointer; }
     .open-button:hover { background: #25395d; }
     .drawer { position: relative; min-height: 610px; padding: 20px; }
@@ -138,15 +141,15 @@
           <span class="status-tag">Active buyer view</span>
         </div>
         <div class="stage-grid" id="stageGrid"></div>
-        <button class="open-button" type="button" id="openPopup">Open selected stage insights</button>
+        <button class="open-button" type="button" id="openPopup">Open selected stage insights · same destination as !</button>
       </section>
 
-      <aside class="drawer" id="drawer" aria-label="Existing stage insights pop-up">
+      <aside class="drawer" id="drawer" aria-label="Stage insights pop-up opened by exclamation mark">
         <button class="close" type="button" id="closePopup" aria-label="Close insights">×</button>
         <div class="drawer-head">
-          <div class="eyebrow">Existing stage insights pop-up</div>
+          <div class="eyebrow">Stage insights pop-up · opened by !</div>
           <h2 id="drawerTitle">Wet Processing insights</h2>
-          <p class="muted">Existing progress descriptions and buyer-manual Q&amp;A stay in their own sections.</p>
+          <p class="muted">The new overdue area is placed above the existing Pain points and buyer-manual content.</p>
         </div>
 
         <section class="section overdue-section" id="overdueArea" aria-live="polite">
@@ -162,6 +165,11 @@
           </div>
           <div class="fact-list" id="factList"></div>
           <div class="companion hidden" id="companionArea"><strong>Separate historical stage pop-up</strong><span id="companionText"></span></div>
+        </section>
+
+        <section class="section unchanged" id="painPoints">
+          <h4>Pain points · existing</h4>
+          <p>Existing stage pain points remain below the overdue area and are not replaced by date facts.</p>
         </section>
 
         <section class="section hidden" id="emptyArea">
@@ -264,8 +272,9 @@
         const isAffected = affected.has(stageNames[key]);
         const stageCards = allCards.filter((card) => card.stage === stageNames[key]);
         const label = isAffected ? `${stageCards.length} overdue event${stageCards.length === 1 ? '' : 's'}` : (isSelected ? 'Insights available' : 'On track');
-        return `<article class="stage${isSelected ? ' selected' : ''}"><div class="stage-name">${stageNames[key]}</div><div class="stage-meta${isAffected ? ' warn' : (isSelected ? ' watch' : '')}">${label}</div></article>`;
+        return `<article class="stage${isSelected ? ' selected' : ''}"><div class="stage-name">${stageNames[key]}</div><div class="stage-meta${isAffected ? ' warn' : (isSelected ? ' watch' : '')}">${label}</div><div class="stage-actions"><button class="insight-trigger" type="button" data-stage="${key}" aria-label="Open ${stageNames[key]} insights">!</button><span>Stage insights</span></div></article>`;
       }).join('');
+      stageGrid.querySelectorAll('.insight-trigger').forEach((button) => button.addEventListener('click', () => drawer.classList.remove('closed')));
     }
 
     function renderCards(data) {
