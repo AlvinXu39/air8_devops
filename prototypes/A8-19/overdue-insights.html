@@ -81,6 +81,8 @@
     .fact { border: 1px solid #d6dee8; border-radius: 7px; padding: 3px 7px; color: #445069; background: #fff; font-size: 11px; }
     .fact.late { border-color: #f1b3ab; color: var(--red); font-weight: 800; }
     .fact.group { border-color: #c9d9ff; color: #2854bd; background: #f5f8ff; }
+    .companion { margin-top: 11px; border: 1px dashed #d6b56b; border-radius: 10px; padding: 10px 11px; color: #6b4c00; background: #fffaf0; font-size: 12px; }
+    .companion strong { display: block; color: #7a4b00; }
     .hidden { display: none !important; }
     .empty-state { border: 1px dashed #b8c5d1; border-radius: 12px; padding: 17px; color: #526275; background: #f7fafc; }
     .empty-state strong { display: block; color: var(--navy); }
@@ -159,6 +161,7 @@
             <div class="metric"><strong id="stageCount">1</strong><span>Overdue stages</span></div>
           </div>
           <div class="fact-list" id="factList"></div>
+          <div class="companion hidden" id="companionArea"><strong>Separate historical stage pop-up</strong><span id="companionText"></span></div>
         </section>
 
         <section class="section hidden" id="emptyArea">
@@ -219,11 +222,10 @@
         note: 'Merged historical snapshot view · selected historical stage · synthetic review data'
       },
       multi: {
-        stage: 'wet_processing', report: '2026-06-03', selected: 'Wet Processing', risk: 'At risk', riskClass: '', summary: 'One PO has separate overdue events across two stages.', average: '4d', count: 2, stages: 2,
+        stage: 'wet_processing', report: '2026-06-03', selected: 'Wet Processing', risk: 'At risk', riskClass: '', summary: 'One PO has separate overdue events across two stage pop-ups.', average: '5d', count: 1, stages: 1,
         cards: [
-          { po: 'PO-1042', stage: 'Sewing', kind: 'Historical overdue', plan: '18 May 2026', relevant: 'Actual 21 May 2026', days: 3, group: 'Jeans/Pants', dateType: 'plan_actual_delay' },
           { po: 'PO-1042', stage: 'Wet Processing', kind: 'Current-stage overdue', plan: '29 May 2026', relevant: 'Report 03 Jun 2026', days: 5, group: 'Jeans/Pants', dateType: 'plan_report_delay' }
-        ], rawDuplicateCount: 3, note: 'Merged active + historical rows · duplicate source rows collapse to one event per key'
+        ], companion: { po: 'PO-1042', stage: 'Sewing', kind: 'Historical overdue', plan: '18 May 2026', relevant: 'Actual 21 May 2026', days: 3, group: 'Jeans/Pants', dateType: 'plan_actual_delay' }, rawDuplicateCount: 3, note: 'Wet Processing pop-up · duplicate source rows collapse to one event per key; Sewing remains in its separate historical pop-up'
       },
       crd: {
         stage: 'sewing', report: '2026-06-03', selected: 'Sewing', risk: 'No stage alert', riskClass: 'none', summary: 'PO-level CRD lateness is separate from stage overdue.', average: '—', count: 0, stages: 0, cards: [], note: 'CRD 01 Jun 2026 < report 03 Jun 2026 · no stage event'
@@ -255,11 +257,13 @@
 
     function renderStageGrid(data) {
       const stageKeys = ['cutting_preparation', 'sewing', 'wet_processing', 'quality_control', 'packing'];
-      const affected = new Set(data.cards.filter((card) => card.stage === data.selected).map((card) => card.stage));
+      const allCards = data.companion ? data.cards.concat(data.companion) : data.cards;
+      const affected = new Set(allCards.map((card) => card.stage));
       stageGrid.innerHTML = stageKeys.map((key) => {
         const isSelected = key === data.stage;
         const isAffected = affected.has(stageNames[key]);
-        const label = isAffected ? `${data.cards.filter((card) => card.stage === stageNames[key]).length} overdue event${data.cards.filter((card) => card.stage === stageNames[key]).length === 1 ? '' : 's'}` : (isSelected ? 'Insights available' : 'On track');
+        const stageCards = allCards.filter((card) => card.stage === stageNames[key]);
+        const label = isAffected ? `${stageCards.length} overdue event${stageCards.length === 1 ? '' : 's'}` : (isSelected ? 'Insights available' : 'On track');
         return `<article class="stage${isSelected ? ' selected' : ''}"><div class="stage-name">${stageNames[key]}</div><div class="stage-meta${isAffected ? ' warn' : (isSelected ? ' watch' : '')}">${label}</div></article>`;
       }).join('');
     }
@@ -286,6 +290,8 @@
       overdueArea.classList.toggle('hidden', Boolean(data.error) || data.cards.length === 0);
       emptyArea.classList.toggle('hidden', Boolean(data.error) || data.cards.length > 0);
       errorArea.classList.toggle('hidden', !data.error);
+      $('companionArea').classList.toggle('hidden', !data.companion);
+      $('companionText').textContent = data.companion ? `${data.companion.stage} insights only · ${data.companion.po} · Plan ${data.companion.plan} · ${data.companion.relevant} · +${data.companion.days} days late` : '';
       renderCards(data);
       document.querySelectorAll('.scenario').forEach((button) => button.classList.toggle('active', button.dataset.scenario === name));
     }
