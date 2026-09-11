@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Credit Memo login return â€” A8-33 prototype</title>
+  <style>
+    :root { color-scheme: light; --ink:#182230; --muted:#667085; --line:#d9e0e8; --panel:#fff; --bg:#f5f7fb; --brand:#1769e0; --brand-soft:#eaf2ff; --success:#087443; --success-soft:#e7f7ef; --warn:#9a6700; --warn-soft:#fff7df; --danger:#b42318; --danger-soft:#fff0ee; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .shell { max-width:1180px; margin:0 auto; padding:28px 20px 52px; }
+    header { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:22px; }
+    .eyebrow { color:var(--brand); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    h1 { font-size:30px; line-height:1.15; margin:6px 0 8px; letter-spacing:-.02em; }
+    h2 { font-size:18px; margin:0 0 12px; }
+    h3 { font-size:14px; margin:0 0 8px; }
+    p { margin:0 0 10px; }
+    .subtle { color:var(--muted); }
+    .badge { display:inline-flex; align-items:center; border:1px solid #bfd2f5; background:var(--brand-soft); border-radius:999px; color:#154a99; font-size:12px; font-weight:700; padding:5px 9px; white-space:nowrap; }
+    .grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(310px,.75fr); gap:18px; align-items:start; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 22px rgba(18,39,70,.05); padding:20px; }
+    .panel + .panel { margin-top:18px; }
+    .flow { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:16px 0 20px; }
+    .step { border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fbfcfe; font-size:12px; font-weight:700; }
+    .arrow { color:#9aa6b5; }
+    .state { border:1px solid var(--line); border-radius:14px; padding:18px; min-height:280px; background:#fbfcfe; }
+    .state.login { background:#f8fbff; border-color:#bed4f7; }
+    .state.success { background:var(--success-soft); border-color:#a8ddc2; }
+    .state.empty, .state.exception { background:var(--warn-soft); border-color:#ead28a; }
+    .state.failure { background:var(--danger-soft); border-color:#f2b8b2; }
+    .state.authenticated { background:#f4f0ff; border-color:#d5c7ff; }
+    .state-title { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+    .status { border-radius:999px; padding:4px 8px; font-size:11px; font-weight:800; background:#fff; border:1px solid currentColor; }
+    .field { margin-top:12px; }
+    .label { display:block; color:var(--muted); font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; margin-bottom:4px; }
+    .value { border:1px solid var(--line); border-radius:9px; background:#fff; padding:9px 10px; overflow-wrap:anywhere; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
+    button { appearance:none; border:1px solid #b7c5d8; background:#fff; color:var(--ink); border-radius:9px; padding:9px 11px; font:inherit; font-weight:700; cursor:pointer; }
+    button:hover, button:focus-visible { border-color:var(--brand); box-shadow:0 0 0 3px rgba(23,105,224,.12); outline:0; }
+    button.primary { border-color:var(--brand); background:var(--brand); color:#fff; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; margin:15px 0 0; }
+    .fixture-list { display:grid; gap:8px; }
+    .fixture { width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .fixture small { color:var(--muted); font-weight:500; }
+    .trace { display:flex; gap:6px; flex-wrap:wrap; margin-top:14px; }
+    .trace span { border:1px solid var(--line); border-radius:6px; padding:3px 6px; color:#455468; background:#fff; font:11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .review { border-left:3px solid #8f7ae5; padding:10px 12px; background:#f8f6ff; color:#40396c; border-radius:0 9px 9px 0; }
+    .checklist { display:grid; gap:9px; margin:0; padding:0; list-style:none; }
+    .checklist li { display:flex; gap:9px; align-items:flex-start; }
+    .check { color:var(--success); font-weight:900; }
+    .meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+    .meta div { border:1px solid var(--line); border-radius:9px; padding:9px; background:#fbfcfe; }
+    .meta strong { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+    .meta span { display:block; margin-top:3px; font-size:12px; }
+    @media (max-width:850px) { header { display:block; } header .badge { margin-top:12px; } .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">Prototype review Â· A8-33</div>
+        <h1>Preserve the Credit Memo return URL through login</h1>
+        <p class="subtle">A review fixture for the approved <code>A8-33-RC-v0.4</code> interaction. No production authentication or network calls are made.</p>
+      </div>
+      <span class="badge">Gate 2 evidence Â· interaction only</span>
+    </header>
+
+    <div class="grid">
+      <section class="panel" aria-labelledby="journey-title">
+        <h2 id="journey-title">Journey preview</h2>
+        <div class="flow" aria-label="Request to return flow">
+          <span class="step">1 Â· Request /cm</span><span class="arrow">â†’</span>
+          <span class="step">2 Â· Auth gate</span><span class="arrow">â†’</span>
+          <span class="step">3 Â· Existing login</span><span class="arrow">â†’</span>
+          <span class="step">4 Â· Return or remain</span>
+        </div>
+        <div id="state" class="state login" aria-live="polite"></div>
+      </section>
+
+      <aside>
+        <section class="panel" aria-labelledby="fixtures-title">
+          <h2 id="fixtures-title">Review fixtures</h2>
+          <p class="subtle">Select a state to inspect its observable outcome.</p>
+          <div class="fixture-list">
+            <button class="fixture primary" data-fixture="valid"><span>Valid local CM return</span><small>EX-N-001 Â· AC-001</small></button>
+            <button class="fixture" data-fixture="missing"><span>Missing return URL</span><small>EX-EMPTY-001 Â· AC-002</small></button>
+            <button class="fixture" data-fixture="malformed"><span>Malformed value</span><small>EX-E-001 Â· AC-004</small></button>
+            <button class="fixture" data-fixture="unsafe"><span>Unsafe destination</span><small>EX-E-002 Â· AC-004</small></button>
+            <button class="fixture" data-fixture="invalid"><span>Invalid destination</span><small>EX-E-003 Â· AC-004</small></button>
+            <button class="fixture" data-fixture="failure"><span>Login failure</span><small>EX-E-004 Â· AC-005</small></button>
+            <button class="fixture" data-fixture="authenticated"><span>Already authenticated</span><small>AC-003 Â· CI-005</small></button>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="coverage-title">
+          <h2 id="coverage-title">Approved coverage</h2>
+          <ul class="checklist">
+            <li><span class="check">âœ“</span><span>Valid `/cm` path and query are carried by `backUrl` and restored after success.</span></li>
+            <li><span class="check">âœ“</span><span>Missing, invalid, malformed, and unsafe destinations stay on login.</span></li>
+            <li><span class="check">âœ“</span><span>Login failure stays on login with existing error behavior.</span></li>
+            <li><span class="check">âœ“</span><span>Existing authentication and permission scope remain unchanged.</span></li>
+          </ul>
+          <div class="review" style="margin-top:15px"><strong>Review note</strong><br>This prototype does not define URL validation, encoding, allowed-origin syntax, non-<code>/cm</code> behavior, or a new fallback rule.</div>
+        </section>
+      </aside>
+    </div>
+
+    <section class="panel" style="margin-top:18px" aria-labelledby="trace-title">
+      <h2 id="trace-title">Traceability</h2>
+      <div class="meta">
+        <div><strong>Baseline</strong><span>A8-33-RC-v0.4</span></div>
+        <div><strong>Confirmed facts</strong><span>CI-001..CI-005</span></div>
+        <div><strong>Rules</strong><span>R-001-CURRENT, R-001..R-008</span></div>
+        <div><strong>Acceptance</strong><span>AC-001..AC-005</span></div>
+        <div><strong>Examples</strong><span>EX-N-001, EX-EMPTY-001, EX-E-001..EX-E-004</span></div>
+        <div><strong>Resolved conflicts</strong><span>CONFLICT-001-RESOLVED, CONFLICT-002-RESOLVED</span></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fixtures = {
+      valid: {
+        kind: 'login', tone: 'login', title: 'Existing login page', badge: 'backUrl carried',
+        summary: 'The auth gate received a protected CM request and carried its valid local destination through the existing login flow.',
+        fields: [['Requested path', '/cm?draftId=123'], ['backUrl', '/cm?draftId=123'], ['Next action', 'Complete existing login']],
+        actions: [['Simulate successful login', 'success']], trace: ['R-001', 'R-002', 'R-003', 'R-006', 'AC-001', 'EX-N-001']
+      },
+      missing: {
+        kind: 'empty', tone: 'empty', title: 'Existing login page', badge: 'no return URL',
+        summary: 'No return destination is present. The login page remains the visible state.',
+        fields: [['Requested path', 'Not available'], ['backUrl', 'Not present'], ['Outcome', 'Remain on login']],
+        actions: [], trace: ['R-005', 'CI-002', 'AC-002', 'EX-EMPTY-001']
+      },
+      malformed: {
+        kind: 'exception', tone: 'exception', title: 'Existing login page', badge: 'not followed',
+        summary: 'The supplied malformed value is not followed. The exact validation mechanics are intentionally not defined here.',
+        fields: [['backUrl', 'Malformed fixture value'], ['Outcome', 'Remain on login'], ['Review boundary', 'No validator specified']],
+        actions: [], trace: ['R-006', 'R-007', 'CI-004', 'AC-004', 'EX-E-001']
+      },
+      unsafe: {
+        kind: 'exception', tone: 'exception', title: 'Existing login page', badge: 'not followed',
+        summary: 'The supplied unsafe destination is not followed. The prototype does not define the safety-boundary implementation.',
+        fields: [['backUrl', 'Unsafe destination fixture'], ['Outcome', 'Remain on login'], ['Review boundary', 'No fallback rule added']],
+        actions: [], trace: ['R-006', 'R-007', 'CI-004', 'AC-004', 'EX-E-002']
+      },
+      invalid: {
+        kind: 'exception', tone: 'exception', title: 'Existing login page', badge: 'not followed',
+        summary: 'The supplied invalid destination is not followed. The prototype does not infer what makes a destination valid.',
+        fields: [['backUrl', 'Invalid destination fixture'], ['Outcome', 'Remain on login'], ['Review boundary', 'No validity rule added']],
+        actions: [], trace: ['R-006', 'R-007', 'CI-004', 'AC-004', 'EX-E-003']
+      },
+      failure: {
+        kind: 'failure', tone: 'failure', title: 'Existing login page', badge: 'login failed',
+        summary: 'The valid destination is retained as context, but a failed login keeps the user on the existing login page.',
+        fields: [['Requested path', '/cm?draftId=123'], ['backUrl', '/cm?draftId=123'], ['Error', 'Existing login error behavior']],
+        actions: [['Retry successful login', 'success']], trace: ['R-003', 'R-008', 'CI-003', 'AC-005', 'EX-E-004']
+      },
+      authenticated: {
+        kind: 'authenticated', tone: 'authenticated', title: 'Credit Memo page', badge: 'existing access',
+        summary: 'A valid session keeps the existing CM experience. No new redirect or permission behavior is introduced.',
+        fields: [['Requested path', '/cm'], ['Session', 'Valid existing session'], ['Outcome', 'Open CM normally']],
+        actions: [], trace: ['R-004', 'CI-005', 'AC-003']
+      },
+      success: {
+        kind: 'success', tone: 'success', title: 'Credit Memo page', badge: 'login succeeded',
+        summary: 'The user returns to the exact requested CM path and query after successful login.',
+        fields: [['Returned path', '/cm?draftId=123'], ['Source', 'Original request'], ['Outcome', 'Same path and query']],
+        actions: [['Back to login state', 'valid']], trace: ['R-003', 'AC-001', 'EX-N-001']
+      }
+    };
+
+    const state = document.getElementById('state');
+    function show(name) {
+      const item = fixtures[name];
+      state.className = 'state ' + item.tone;
+      state.innerHTML = `<div class="state-title"><h3>${item.title}</h3><span class="status">${item.badge}</span></div><p>${item.summary}</p>${item.fields.map(([label, value]) => `<div class="field"><span class="label">${label}</span><div class="value">${value}</div></div>`).join('')}<div class="actions">${item.actions.map(([label, target], i) => `<button class="${i === 0 ? 'primary' : ''}" data-action="${target}">${label}</button>`).join('')}</div><div class="trace">${item.trace.map(id => `<span>${id}</span>`).join('')}</div>`;
+      state.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => show(button.dataset.action)));
+    }
+    document.querySelectorAll('[data-fixture]').forEach(button => button.addEventListener('click', () => show(button.dataset.fixture)));
+    show('valid');
+  </script>
+</body>
+</html>
+
