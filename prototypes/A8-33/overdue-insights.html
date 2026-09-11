@@ -58,7 +58,7 @@
   <main class="shell">
     <header>
       <div>
-        <div class="eyebrow">Prototype review Â· A8-33</div>
+        <div class="eyebrow">Prototype review &middot; A8-33</div>
         <h1>Preserve the Credit Memo return URL through login</h1>
         <p class="subtle">A review fixture for the approved <code>A8-33-RC-v0.4</code> interaction. No production authentication or network calls are made.</p>
       </div>
@@ -69,10 +69,10 @@
       <section class="panel" aria-labelledby="journey-title">
         <h2 id="journey-title">Journey preview</h2>
         <div class="flow" aria-label="Request to return flow">
-          <span class="step">1 Â· Request /cm</span><span class="arrow">â†’</span>
-          <span class="step">2 Â· Auth gate</span><span class="arrow">â†’</span>
-          <span class="step">3 Â· Existing login</span><span class="arrow">â†’</span>
-          <span class="step">4 Â· Return or remain</span>
+          <span class="step">1 &middot; Request /cm</span><span class="arrow">&rarr;</span>
+          <span class="step">2 &middot; Auth gate</span><span class="arrow">&rarr;</span>
+          <span class="step">3 &middot; Existing login</span><span class="arrow">&rarr;</span>
+          <span class="step">4 &middot; Return or remain</span>
         </div>
         <div id="state" class="state login" aria-live="polite"></div>
       </section>
@@ -95,10 +95,10 @@
         <section class="panel" aria-labelledby="coverage-title">
           <h2 id="coverage-title">Approved coverage</h2>
           <ul class="checklist">
-            <li><span class="check">âœ“</span><span>Valid `/cm` path and query are carried by `backUrl` and restored after success.</span></li>
-            <li><span class="check">âœ“</span><span>Missing, invalid, malformed, and unsafe destinations stay on login.</span></li>
-            <li><span class="check">âœ“</span><span>Login failure stays on login with existing error behavior.</span></li>
-            <li><span class="check">âœ“</span><span>Existing authentication and permission scope remain unchanged.</span></li>
+            <li><span class="check">&#10003;</span><span>Valid `/cm` path and query are carried by `backUrl` and restored after success.</span></li>
+            <li><span class="check">&#10003;</span><span>Missing, invalid, malformed, and unsafe destinations stay on login.</span></li>
+            <li><span class="check">&#10003;</span><span>Login failure stays on login with existing error behavior.</span></li>
+            <li><span class="check">&#10003;</span><span>Existing authentication and permission scope remain unchanged.</span></li>
           </ul>
           <div class="review" style="margin-top:15px"><strong>Review note</strong><br>This prototype does not define URL validation, encoding, allowed-origin syntax, non-<code>/cm</code> behavior, or a new fallback rule.</div>
         </section>
