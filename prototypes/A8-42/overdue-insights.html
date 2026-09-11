@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Refactoring Dashboard - DB Disbursement Chart</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --soft: #98a2b3;
+      --line: #e4e7ec;
+      --panel: #ffffff;
+      --canvas: #f5f7fb;
+      --navy: #12233f;
+      --blue: #2f6fed;
+      --blue-soft: #eaf1ff;
+      --teal: #12a594;
+      --teal-soft: #e7f8f5;
+      --amber: #b7791f;
+      --amber-soft: #fff7e6;
+      --red: #c4322f;
+      --red-soft: #fff0ef;
+      --shadow: 0 12px 32px rgba(18, 35, 63, .07);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--blue); }
+    code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .app-shell { min-height: 100vh; }
+    .topbar {
+      min-height: 70px;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      padding: 0 32px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.01em; }
+    .brand-mark { width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(135deg, #75a7ff, #2f6fed); display: grid; place-items: center; font-weight: 900; }
+    .topbar nav { display: flex; align-items: center; gap: 22px; }
+    .topbar nav a { color: #dce6f8; text-decoration: none; font-size: 13px; }
+    .topbar nav a.active { color: #fff; font-weight: 750; }
+    .user-pill { display: flex; align-items: center; gap: 8px; color: #dce6f8; font-size: 12px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: #d7e4ff; color: var(--navy); display: grid; place-items: center; font-weight: 800; }
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 56px; }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 24px; }
+    .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 850; }
+    h1 { margin: 5px 0 5px; font-size: 30px; line-height: 1.15; letter-spacing: -.03em; }
+    h2 { margin: 0; font-size: 18px; letter-spacing: -.015em; }
+    h3 { margin: 0; font-size: 14px; }
+    p { margin: 0 0 9px; }
+    .subtle { color: var(--muted); }
+    .head-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .badge { border: 1px solid #c7d6f6; background: var(--blue-soft); border-radius: 999px; color: #2454a4; padding: 6px 10px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .badge.neutral { border-color: var(--line); background: #fff; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .metric { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 15px 16px; box-shadow: 0 4px 16px rgba(18, 35, 63, .035); }
+    .metric-top { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .metric-icon { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 900; color: var(--blue); background: var(--blue-soft); }
+    .metric:nth-child(2) .metric-icon { color: var(--teal); background: var(--teal-soft); }
+    .metric:nth-child(3) .metric-icon { color: var(--amber); background: var(--amber-soft); }
+    .metric:nth-child(4) .metric-icon { color: #7956c7; background: #f0ecff; }
+    .metric-value { margin-top: 10px; font-size: 25px; font-weight: 800; letter-spacing: -.03em; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .7fr); gap: 18px; align-items: start; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 20px 22px 14px; border-bottom: 1px solid var(--line); }
+    .panel-head p { margin-top: 4px; font-size: 12px; }
+    .head-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+    button { appearance: none; cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: var(--ink); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 12px; font-weight: 750; }
+    button:hover, button:focus-visible { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47, 111, 237, .12); outline: 0; }
+    button.active, button.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .chart-wrap { padding: 16px 20px 18px; }
+    .chart-meta { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 13px; }
+    .legend { display: flex; gap: 17px; flex-wrap: wrap; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 22px; height: 3px; border-radius: 2px; display: inline-block; }
+    .swatch.blue { background: var(--blue); }
+    .swatch.teal { background: var(--teal); }
+    .source-note { color: var(--soft); font-size: 11px; }
+    .chart-stage { position: relative; min-height: 360px; border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(180deg, #fbfcff 0%, #fff 100%); overflow: hidden; }
+    svg { display: block; width: 100%; height: 360px; }
+    .gridline { stroke: #e9edf4; stroke-width: 1; }
+    .axis-label { fill: #8b95a7; font-size: 11px; }
+    .series-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .point { stroke: #fff; stroke-width: 3; cursor: pointer; }
+    .point:focus { outline: none; stroke: #12233f; }
+    .tooltip { position: absolute; pointer-events: none; min-width: 144px; padding: 9px 10px; background: #152238; color: #fff; border-radius: 9px; box-shadow: 0 8px 20px rgba(18, 35, 63, .2); font-size: 11px; opacity: 0; transform: translate(-50%, -112%); transition: opacity .12s ease; }
+    .tooltip.show { opacity: 1; }
+    .tooltip strong { display: block; margin-bottom: 3px; font-size: 12px; }
+    .tooltip-row { display: flex; justify-content: space-between; gap: 12px; color: #dce6f8; }
+    .tooltip-row b { color: #fff; }
+    .chart-caption { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-top: 12px; color: var(--muted); font-size: 11px; }
+    .chart-caption strong { color: var(--ink); }
+    .state { min-height: 360px; display: grid; place-items: center; text-align: center; padding: 36px; }
+    .state-icon { width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; font-weight: 900; background: var(--amber-soft); color: var(--amber); }
+    .state.error .state-icon { background: var(--red-soft); color: var(--red); }
+    .state h3 { margin-bottom: 6px; }
+    .state p { max-width: 420px; color: var(--muted); }
+    .side-stack { display: grid; gap: 18px; }
+    .side-panel { padding: 18px 19px; }
+    .side-panel h2 { font-size: 15px; margin-bottom: 13px; }
+    .detail-list { display: grid; gap: 11px; margin: 0; }
+    .detail { display: grid; grid-template-columns: 31px 1fr; gap: 10px; align-items: start; }
+    .detail-mark { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: #f2f4f7; color: var(--blue); font-size: 12px; font-weight: 900; }
+    .detail strong { display: block; font-size: 12px; }
+    .detail span { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .guardrail { border-left: 3px solid #8b76dc; border-radius: 0 9px 9px 0; background: #f7f5ff; color: #514a7c; padding: 10px 11px; font-size: 11px; }
+    .review-panel { margin-top: 18px; padding: 18px 20px; }
+    .review-panel .review-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 13px; }
+    .review-card { border: 1px solid var(--line); border-radius: 11px; padding: 12px; background: #fbfcfe; }
+    .review-card strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .review-card span { display: block; margin-top: 5px; font-size: 12px; }
+    .flow-panel { margin-top: 18px; padding: 22px; scroll-margin-top: 18px; }
+    .flow-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .flow-step { position: relative; border: 1px solid var(--line); border-radius: 11px; padding: 12px; background: #fbfcfe; }
+    .flow-step:not(:last-child)::after { content: "â†’"; position: absolute; right: -15px; top: 29px; color: #9aa6b5; z-index: 2; }
+    .flow-number { color: var(--blue); font-size: 11px; font-weight: 850; }
+    .flow-step strong { display: block; margin-top: 5px; font-size: 12px; }
+    .flow-step span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .footer-note { margin-top: 20px; color: var(--soft); font-size: 11px; text-align: right; }
+    .hidden { display: none !important; }
+    @media (max-width: 980px) { .content-grid { grid-template-columns: 1fr; } .side-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); } .flow-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } .flow-step:nth-child(3)::after { display: none; } }
+    @media (max-width: 700px) { .topbar { padding: 0 18px; } .topbar nav { display: none; } .page { padding: 22px 15px 40px; } .page-head { display: block; } .head-meta { justify-content: flex-start; margin-top: 14px; } .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .panel-head { display: block; } .head-actions { justify-content: flex-start; margin-top: 13px; } .side-stack, .review-panel .review-row { grid-template-columns: 1fr; } .flow-steps { grid-template-columns: 1fr; } .flow-step::after { display: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">R</span><span>Refactoring Portal</span></div>
+      <nav aria-label="Primary navigation">
+        <a class="active" href="#dashboard">Dashboard</a>
+        <a href="#db-disbursement">DB Loans</a>
+        <a href="#user-flow">User flow</a>
+      </nav>
+      <div class="user-pill"><span class="avatar">FM</span><span>Finance management</span></div>
+    </header>
+
+    <main class="page" id="dashboard">
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Dashboard / DB Disbursement</div>
+          <h1>Financial overview</h1>
+          <p class="subtle">A time-based view of existing DB loan disbursement records.</p>
+        </div>
+        <div class="head-meta">
+          <span class="badge">Gate 2 review fixture</span>
+          <span class="badge neutral">A8-42-RC-v0.1</span>
+        </div>
+      </div>
+
+      <section class="cards" aria-label="Dashboard summary">
+        <article class="metric"><div class="metric-top"><span>Financing orders</span><span class="metric-icon">â†—</span></div><div class="metric-value">248</div></article>
+        <article class="metric"><div class="metric-top"><span>Repayment records</span><span class="metric-icon">â†˜</span></div><div class="metric-value">1,026</div></article>
+        <article class="metric"><div class="metric-top"><span>Bank statements</span><span class="metric-icon">â–¤</span></div><div class="metric-value">412</div></article>
+        <article class="metric"><div class="metric-top"><span>Financing overview</span><span class="metric-icon">âŒ</span></div><div class="metric-value">196</div></article>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel" id="db-disbursement" aria-labelledby="chart-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="chart-title">DB Disbursement</h2>
+              <p class="subtle">Monthly averages from the existing DB loan source</p>
+            </div>
+            <div class="head-actions" aria-label="Prototype state controls">
+              <button class="state-button active" data-state="normal">Populated</button>
+              <button class="state-button" data-state="empty">Empty</button>
+              <button class="state-button" data-state="error">Error default</button>
+            </div>
+          </div>
+          <div id="normal-state">
+            <div class="chart-wrap">
+              <div class="chart-meta">
+                <div class="legend" aria-label="Chart legend">
+                  <span class="legend-item"><i class="swatch blue"></i>Average disbursement amount</span>
+                  <span class="legend-item"><i class="swatch teal"></i>Average interest</span>
+                </div>
+                <span class="source-note">Start Date Â· Asia/Shanghai</span>
+              </div>
+              <div class="chart-stage" id="chart-stage">
+                <svg id="chart" role="img" aria-label="Line chart showing monthly average disbursement amount and average interest"></svg>
+                <div id="tooltip" class="tooltip" role="status"></div>
+              </div>
+              <div class="chart-caption">
+                <span><strong>Months shown:</strong> populated calendar months only. March has no records and is omitted.</span>
+                <span>Illustrative values</span>
+              </div>
+            </div>
+          </div>
+          <div id="empty-state" class="state hidden" aria-live="polite">
+            <div>
+              <div class="state-icon">âˆ…</div>
+              <h3>No DB disbursement records in this review state</h3>
+              <p>Months with no records are omitted. Existing empty-data defaults apply; this review fixture adds no new empty-data meaning.</p>
+              <button class="primary back-button" type="button">Return to populated preview</button>
+            </div>
+          </div>
+          <div id="error-state" class="state error hidden" aria-live="polite">
+            <div>
+              <div class="state-icon">!</div>
+              <h3>DB Disbursement values are unavailable</h3>
+              <p>The existing dashboard error default applies in this review state. No new error copy or recovery semantics are proposed.</p>
+              <button class="primary back-button" type="button">Return to default preview</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-stack">
+          <section class="panel side-panel" aria-labelledby="reading-title">
+            <h2 id="reading-title">How to read this view</h2>
+            <div class="detail-list">
+              <div class="detail"><span class="detail-mark">01</span><div><strong>Use the Start Date</strong><span>Finance Details Start Date is interpreted in Asia/Shanghai.</span></div></div>
+              <div class="detail"><span class="detail-mark">02</span><div><strong>Compare two series</strong><span>Monthly average disbursement and interest remain separate.</span></div></div>
+              <div class="detail"><span class="detail-mark">03</span><div><strong>Read populated months</strong><span>Months with no records are not rendered as zero points.</span></div></div>
+            </div>
+          </section>
+          <section class="panel side-panel" aria-labelledby="scope-title">
+            <h2 id="scope-title">Review guardrails</h2>
+            <div class="guardrail">Presentation and interaction evidence only. Existing source, access, units, precision, rounding, partial-data behavior, and error defaults are unchanged.</div>
+            <div class="review-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+              <div class="review-card"><strong>Source</strong><span>Existing DB loans</span></div>
+              <div class="review-card"><strong>Access</strong><span>Existing dashboard</span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="panel review-panel" aria-labelledby="trace-title">
+        <h2 id="trace-title">Baseline traceability</h2>
+        <div class="review-row">
+          <div class="review-card"><strong>Presentation</strong><span><code>R-001</code> / <code>AC-001</code> - old DB Disbursement list becomes a monthly line chart.</span></div>
+          <div class="review-card"><strong>Calculation</strong><span><code>R-003</code> - <code>R-006</code> / <code>AC-002</code> - <code>AC-005</code> - timezone, month grouping, two averages, and omitted empty months.</span></div>
+        </div>
+      </section>
+
+      <section class="panel flow-panel" id="user-flow" aria-labelledby="flow-title">
+        <div class="eyebrow">Visible user-flow anchor</div>
+        <h2 id="flow-title">From dashboard entry to monthly insight</h2>
+        <p class="subtle">The fixture mirrors the approved flow in <code>specs/A8-42-dashboard-db-loan-disbursement-chart/user-flow.md</code>.</p>
+        <div class="flow-steps" aria-label="DB Disbursement user flow">
+          <div class="flow-step"><span class="flow-number">STEP 01</span><strong>Open dashboard</strong><span>Existing authorized entry (`AC-001`, `AC-006`).</span></div>
+          <div class="flow-step"><span class="flow-number">STEP 02</span><strong>Load DB loans</strong><span>Existing source and access remain (`R-002`).</span></div>
+          <div class="flow-step"><span class="flow-number">STEP 03</span><strong>Assign month</strong><span>Start Date in Asia/Shanghai (`R-003`, `AC-002`).</span></div>
+          <div class="flow-step"><span class="flow-number">STEP 04</span><strong>Compare averages</strong><span>Two separate series (`R-005`, `R-006`, `AC-003`, `AC-004`).</span></div>
+          <div class="flow-step"><span class="flow-number">STEP 05</span><strong>Omit empty months</strong><span>No records means no category (`R-004`, `AC-005`).</span></div>
+        </div>
+      </section>
+
+      <div class="footer-note">Self-contained local prototype Â· no production code or network calls</div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const data = [
+        { label: 'Jan 2026', disbursement: 200, interest: 20 },
+        { label: 'Feb 2026', disbursement: 250, interest: 25 },
+        { label: 'Apr 2026', disbursement: 310, interest: 35 },
+        { label: 'May 2026', disbursement: 280, interest: 28 },
+        { label: 'Jun 2026', disbursement: 360, interest: 42 }
+      ];
+      const svg = document.getElementById('chart');
+      const stage = document.getElementById('chart-stage');
+      const tooltip = document.getElementById('tooltip');
+      const normal = document.getElementById('normal-state');
+      const empty = document.getElementById('empty-state');
+      const error = document.getElementById('error-state');
+      const buttons = [...document.querySelectorAll('.state-button')];
+      const width = 860;
+      const height = 360;
+      const pad = { top: 24, right: 28, bottom: 50, left: 52 };
+      const max = 400;
+      const ns = 'http://www.w3.org/2000/svg';
+
+      const make = (tag, attrs = {}) => {
+        const node = document.createElementNS(ns, tag);
+        Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+        return node;
+      };
+      const x = (index) => pad.left + index * ((width - pad.left - pad.right) / (data.length - 1));
+      const y = (value) => height - pad.bottom - (value / max) * (height - pad.top - pad.bottom);
+      const valueText = (value) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
+
+      function drawChart() {
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = '';
+        [0, 100, 200, 300, 400].forEach((tick) => {
+          const line = make('line', { x1: pad.left, x2: width - pad.right, y1: y(tick), y2: y(tick), class: 'gridline' });
+          const label = make('text', { x: pad.left - 11, y: y(tick) + 4, 'text-anchor': 'end', class: 'axis-label' });
+          label.textContent = valueText(tick);
+          svg.append(line, label);
+        });
+        data.forEach((item, index) => {
+          const label = make('text', { x: x(index), y: height - 20, 'text-anchor': 'middle', class: 'axis-label' });
+          label.textContent = item.label;
+          svg.append(label);
+        });
+        const points = (key) => data.map((item, index) => `${x(index)},${y(item[key])}`).join(' ');
+        svg.append(make('polyline', { points: points('disbursement'), class: 'series-line', stroke: '#2f6fed' }));
+        svg.append(make('polyline', { points: points('interest'), class: 'series-line', stroke: '#12a594' }));
+        ['disbursement', 'interest'].forEach((key) => {
+          data.forEach((item, index) => {
+            const point = make('circle', { cx: x(index), cy: y(item[key]), r: 6, fill: key === 'disbursement' ? '#2f6fed' : '#12a594', class: 'point', tabindex: '0' });
+            point.dataset.index = index;
+            point.dataset.series = key;
+            point.addEventListener('mouseenter', showTooltip);
+            point.addEventListener('focus', showTooltip);
+            point.addEventListener('mouseleave', hideTooltip);
+            point.addEventListener('blur', hideTooltip);
+            svg.append(point);
+          });
+        });
+      }
+      function showTooltip(event) {
+        const index = Number(event.currentTarget.dataset.index);
+        const item = data[index];
+        const left = (x(index) / width) * stage.clientWidth;
+        const top = y(item[event.currentTarget.dataset.series]);
+        tooltip.innerHTML = `<strong>${item.label}</strong><div class="tooltip-row"><span>Disbursement avg</span><b>${valueText(item.disbursement)}</b></div><div class="tooltip-row"><span>Interest avg</span><b>${valueText(item.interest)}</b></div>`;
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+        tooltip.classList.add('show');
+      }
+      function hideTooltip() { tooltip.classList.remove('show'); }
+      function setState(state) {
+        normal.classList.toggle('hidden', state !== 'normal');
+        empty.classList.toggle('hidden', state !== 'empty');
+        error.classList.toggle('hidden', state !== 'error');
+        buttons.forEach((button) => button.classList.toggle('active', button.dataset.state === state));
+        hideTooltip();
+      }
+      buttons.forEach((button) => button.addEventListener('click', () => setState(button.dataset.state)));
+      document.querySelectorAll('.back-button').forEach((button) => button.addEventListener('click', () => setState('normal')));
+      drawChart();
+      window.addEventListener('resize', hideTooltip);
+    })();
+  </script>
+</body>
+</html>
+
